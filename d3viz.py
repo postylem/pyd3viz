@@ -8,41 +8,50 @@ class D3Vizable:
         self.data = data
 
     def viz(self, **kwargs):
-        """Base display method that should be overridden by subclasses"""
+        """
+        Base display method that should be overridden by subclasses.
+        """
         raise NotImplementedError("Subclasses must implement viz()")
 
     def _load_JS(self, name, subdir="js"):
         """Load a visualization JavaScript file at {subdir}/{name}.js"""
-        js_file_path = os.path.join(os.path.dirname(__file__), subdir, name + '.js')
+        js_file_path = os.path.join(subdir, name + ".js")
         with open(js_file_path, "r") as f:
             return f.read()
 
     def _JSViz(self, name, **kwargs):
 
         data_json = json.dumps(self.data)
-        kwargs_json = json.dumps(kwargs)
+        opts = json.dumps(kwargs)
 
         js = f"""
-        {self._load_JS("D3Setup")} // load D3 and jQuery
-        {self._load_JS("D3VizPrep")} // loads D3VizPrep function
-        {self._load_JS(name)} // loads vizFn function
+        {self._load_JS("D3Setup", subdir='js/preamble')} // load D3 and jQuery
+        {self._load_JS("D3VizPrep", subdir='js/preamble')} // loads D3VizPrep function
+        // load viz constructor, which must be named `name`
+        {self._load_JS(name)} 
 
         function runViz() {{
             (function(element) {{
-                // 'element' is the name of the div (?) that 
-                // jupyter exposes where the viz wil be put
-                D3VizPrep(element, vizFn, {data_json}, {kwargs_json});
+                // 'element' is the HTML element that
+                // jupyter exposes where the visualization will be put
+                D3VizPrep(element, {name}, {data_json}, {opts});
             }})(element);
         }}
 
-        console.log('Running viz...');
         runViz();
         """
 
         return Javascript(js)
 
 
-class D3VizableCircles(D3Vizable):
+class ExampleCircles(D3Vizable):
+    """
+    Example subclass.
+    Uses visualization code in js/exampleCircles.js
+    """
+
     def viz(self, **kwargs):
-        """Display a circle visualization"""
-        return self._JSViz("_circles", **kwargs)
+        """
+        Displays a circle visualization of a list of numbers.
+        """
+        return self._JSViz("exampleCircles", **kwargs)
