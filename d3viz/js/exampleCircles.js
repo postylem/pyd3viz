@@ -1,4 +1,8 @@
 class exampleCircles {
+    // Implement class like this.
+    // Must be named same as filename, 
+    // and have the same structure as this example:
+    // Construct using args d3 and element (to put visualization in)
     constructor(d3, element) {
 
         this.rootElement = element
